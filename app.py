@@ -36,6 +36,17 @@ import pandas as pd
 
 DATA_PATH = "./data/resale.csv"
 
+# Optional: run pipeline to refresh data when remote version changes (see scripts/fetch_hdb_resale.py)
+def _run_fetch_pipeline():
+    import subprocess
+    p = subprocess.run(
+        [__import__("sys").executable, "scripts/fetch_hdb_resale.py"],
+        capture_output=True,
+        text=True,
+        cwd=".",
+    )
+    return p.returncode == 0, (p.stdout or "") + (p.stderr or "")
+
 #df = pd.read_csv(DATA_PATH)
 # Lesson assumption:
 # this dataset has already gone through EDA and basic cleaning.
@@ -59,6 +70,14 @@ st.dataframe(df.head(20), width="stretch")
 st.set_page_config(page_title="HDB Resale Dashboard", layout="wide")
 
 st.sidebar.header("Filters")
+if st.sidebar.button("Check for data updates"):
+    ok, out = _run_fetch_pipeline()
+    st.sidebar.success("Data is up to date." if ok and "Skipping download" in out else "Update check finished.")
+    if out.strip():
+        st.sidebar.code(out.strip()[:500], language=None)
+    if ok and "Updated" in out:
+        load_data.clear()
+        st.rerun()
 
 # Get unique towns and flat types for the multi-select widgets
 unique_towns = sorted(df["town"].dropna().unique())

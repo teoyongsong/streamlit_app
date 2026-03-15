@@ -214,3 +214,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# HDB resale pipeline state (so each env checks server for updates)
+data/.hdb_resale_version.json
